@@ -1,3 +1,5 @@
+import os
+import shutil
 import torch
 
 from PIL import Image
@@ -11,7 +13,15 @@ class DepthEstimationModel:
     def _get_device(self):
         return "cuda" if torch.cuda.is_available() else "cpu"
 
+    def _clear_cache(self):
+        cache_dir = os.path.expanduser("~/.cache/torch/hub")
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+            print("Cache cleared")
+
     def _init_model(self, model_repo="intel-org/ZoeDepth", model_name="ZoeD_N"):
+        self._clear_cache()
+
         torch.hub.help("intel-isl/MiDaS", "DPT_BEiT_L_384", force_reload=True)  # Triggers fresh download of MiDaS repo
         model = torch.hub.load(model_repo, model_name, pretrained=True, skip_validation=False)
         model.eval()
@@ -29,5 +39,5 @@ class DepthEstimationModel:
         self.save_colored_depth(depth_numpy, output_path)
         return f"image saved {output_path}.png"
 
-model = DepthEstimationModel()
-model.calculate_depthmap("./sea.png","output_sea.png")
+# model = DepthEstimationModel()
+# model.calculate_depthmap("./sea.png","output_sea.png")
